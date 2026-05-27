@@ -18,7 +18,25 @@ static std::string perf_data_file() {
 // Check whether perf is installed and usable
 // -------------------------------------------------------------------
 bool perf_available() {
-    return utils::is_installed("perf");
+    if (!utils::is_installed("perf")) return false;
+
+    // `which perf` passes even when the perf binary is for a different
+    // kernel.  Running it and checking stderr catches that case.
+    std::string out = executor::run_cmd_verbose("perf --version 2>&1");
+    if (out.find("WARNING") != std::string::npos ||
+        out.find("not found for kernel") != std::string::npos ||
+        out.find("not found") != std::string::npos) {
+        return false;
+    }
+    return true;
+}
+
+// Return the recommended linux-tools package for the running kernel.
+std::string perf_tool_package_hint() {
+    std::string ver = utils::strip(
+        executor::run_cmd("uname -r 2>/dev/null"));
+    if (ver.empty()) return "linux-tools-generic";
+    return "linux-tools-" + ver;
 }
 
 // -------------------------------------------------------------------

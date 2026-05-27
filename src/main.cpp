@@ -95,7 +95,8 @@ int main(int argc, char* argv[]) {
     // ================================================================
     if (perf_mode) {
         if (!perf_available()) {
-            std::cerr << "Error: 'perf' command not found. Install linux-tools.\n";
+            std::cerr << "Error: perf is not usable on this system.\n"
+                      << "  Try: sudo apt install " << perf_tool_package_hint() << "\n";
             return 1;
         }
 
@@ -128,17 +129,25 @@ int main(int argc, char* argv[]) {
                       << "\nPerf profiling failed.\n"
                       << utils::color_reset();
             if (!result.error_msg.empty()) {
-                // Show relevant lines (omit the full command invocation)
                 std::string err = result.error_msg;
-                // Trim trailing whitespace
                 while (!err.empty() && (err.back() == '\n' || err.back() == ' '))
                     err.pop_back();
+
+                // Detect kernel-version mismatch and suggest the right package
+                bool kernel_mismatch = (err.find("not found for kernel") != std::string::npos);
+
                 std::cerr << "perf stderr:\n";
                 auto err_lines = utils::split(err, '\n');
                 for (size_t i = 0; i < err_lines.size() && i < 20; i++) {
                     std::string l = utils::strip(err_lines[i]);
                     if (!l.empty())
                         std::cerr << "  " << l << "\n";
+                }
+
+                if (kernel_mismatch) {
+                    std::cerr << "\n"
+                              << "  Install: sudo apt install "
+                              << perf_tool_package_hint() << "\n";
                 }
             } else {
                 std::cerr << "Check that:\n"

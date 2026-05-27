@@ -35,6 +35,9 @@ struct PerfResult {
 
 bool perf_available();
 
+// Returns package name like "linux-tools-5.4.0-150-generic"
+std::string perf_tool_package_hint();
+
 // Run perf profiling and collect results
 PerfResult collect_perf(int duration_sec, int pid = -1, int freq = 99);
 
