@@ -6,7 +6,8 @@ OBJDIR    = obj
 TARGET    = use-linux-perf
 
 SRCS      = $(SRCDIR)/main.cpp $(SRCDIR)/executor.cpp $(SRCDIR)/utils.cpp \
-            $(SRCDIR)/collectors.cpp $(SRCDIR)/reporters.cpp
+            $(SRCDIR)/collectors.cpp $(SRCDIR)/reporters.cpp \
+            $(SRCDIR)/perf_collector.cpp $(SRCDIR)/flame_graph.cpp
 OBJS      = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCS))
 
 .PHONY: all clean

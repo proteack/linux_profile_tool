@@ -123,6 +123,11 @@ std::string timestamp() {
     return oss.str();
 }
 
+std::string pad_right(const std::string& s, int width) {
+    if ((int)s.length() >= width) return s.substr(0, width);
+    return s + std::string(width - s.length(), ' ');
+}
+
 int count_issues(const std::vector<ResourceResult>& results) {
     int count = 0;
     for (const auto& r : results) {

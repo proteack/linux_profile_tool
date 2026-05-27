@@ -39,6 +39,9 @@ std::string timestamp();
 // Count how many metrics have WARNING or DANGER status
 int count_issues(const std::vector<ResourceResult>& results);
 
+// Right-pad a string to at least `width` characters
+std::string pad_right(const std::string& s, int width);
+
 } // namespace utils
 
 #endif // UTILS_H
