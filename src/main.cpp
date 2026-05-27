@@ -125,9 +125,28 @@ int main(int argc, char* argv[]) {
 
         if (!result.has_data) {
             std::cerr << utils::color_status(Status::DANGER)
-                      << "\nNo perf data collected. Try running as root or with sudo.\n"
-                      << "perf record requires CAP_PERFMON or root privileges.\n"
+                      << "\nPerf profiling failed.\n"
                       << utils::color_reset();
+            if (!result.error_msg.empty()) {
+                // Show relevant lines (omit the full command invocation)
+                std::string err = result.error_msg;
+                // Trim trailing whitespace
+                while (!err.empty() && (err.back() == '\n' || err.back() == ' '))
+                    err.pop_back();
+                std::cerr << "perf stderr:\n";
+                auto err_lines = utils::split(err, '\n');
+                for (size_t i = 0; i < err_lines.size() && i < 20; i++) {
+                    std::string l = utils::strip(err_lines[i]);
+                    if (!l.empty())
+                        std::cerr << "  " << l << "\n";
+                }
+            } else {
+                std::cerr << "Check that:\n"
+                          << "  1. perf is installed (apt install linux-tools-$(uname -r))\n"
+                          << "  2. You have root / CAP_PERFMON\n"
+                          << "  3. /proc/sys/kernel/perf_event_paranoid <= 1\n"
+                          << "  4. Kernel lockdown is not enabled\n";
+            }
             return 1;
         }
 

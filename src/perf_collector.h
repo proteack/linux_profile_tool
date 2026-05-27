@@ -21,11 +21,12 @@ struct AggregatedStack {
 
 struct PerfResult {
     std::vector<PerfHotspot>  hotspots;
-    double                    kernel_pct;   // % of samples in kernel
-    double                    user_pct;     // % of samples in user space
-    double                    idle_pct;     // % of samples in idle
+    double                    kernel_pct;
+    double                    user_pct;
+    double                    idle_pct;
     std::vector<AggregatedStack> stacks;
     std::vector<std::string>  anomalies;
+    std::string               error_msg;     // stderr from perf on failure
     int                       duration;
     int                       pid;
     int                       freq;

@@ -24,7 +24,8 @@ bool perf_available() {
 // -------------------------------------------------------------------
 // Run perf record
 // -------------------------------------------------------------------
-static bool run_perf_record(int duration_sec, int pid, int freq) {
+static bool run_perf_record(int duration_sec, int pid, int freq,
+                            std::string& error_out) {
     std::string data_file = perf_data_file();
     ::unlink(data_file.c_str());
 
@@ -33,9 +34,8 @@ static bool run_perf_record(int duration_sec, int pid, int freq) {
         cmd = "perf record -g -F " + std::to_string(freq) + " -p " + std::to_string(pid);
     }
     cmd += " -o " + data_file + " -- sleep " + std::to_string(duration_sec);
-    cmd += " 2>/dev/null";
 
-    executor::run_cmd(cmd);
+    error_out = executor::run_cmd_verbose(cmd);
 
     struct stat st;
     if (::stat(data_file.c_str(), &st) != 0 || st.st_size == 0) {
@@ -346,12 +346,17 @@ PerfResult collect_perf(int duration_sec, int pid, int freq) {
     result.freq = freq;
     result.has_data = false;
 
-    if (!run_perf_record(duration_sec, pid, freq)) {
+    std::string perf_stderr;
+    if (!run_perf_record(duration_sec, pid, freq, perf_stderr)) {
+        result.error_msg = perf_stderr.empty()
+            ? "perf record failed (no output)"
+            : perf_stderr;
+        ::unlink(perf_data_file().c_str());
         return result;
     }
 
     parse_perf_report_into(result);
-    ::unlink(perf_data_file().c_str());  // ← cleanup here
+    ::unlink(perf_data_file().c_str());
     return result;
 }
 
@@ -362,16 +367,20 @@ PerfResult collect_perf_with_stacks(int duration_sec, int pid, int freq) {
     result.freq = freq;
     result.has_data = false;
 
-    if (!run_perf_record(duration_sec, pid, freq)) {
+    std::string perf_stderr;
+    if (!run_perf_record(duration_sec, pid, freq, perf_stderr)) {
+        result.error_msg = perf_stderr.empty()
+            ? "perf record failed (no output)"
+            : perf_stderr;
+        ::unlink(perf_data_file().c_str());
         return result;
     }
 
     parse_perf_report_into(result);
-    // Only try stack parsing if the report succeeded
     if (result.has_data) {
         add_stack_data(result);
     }
 
-    ::unlink(perf_data_file().c_str());  // ← cleanup here
+    ::unlink(perf_data_file().c_str());
     return result;
 }

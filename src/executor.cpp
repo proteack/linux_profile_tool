@@ -39,4 +39,22 @@ std::vector<std::string> run_cmd_lines(const std::string& cmd) {
     return lines;
 }
 
+std::string run_cmd_verbose(const std::string& cmd) {
+    std::array<char, 4096> buffer;
+    std::string result;
+
+    std::string full_cmd = cmd + " 2>&1";
+    FILE* pipe = popen(full_cmd.c_str(), "r");
+    if (!pipe) {
+        return "";
+    }
+
+    while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+        result += buffer.data();
+    }
+
+    pclose(pipe);
+    return result;
+}
+
 } // namespace executor
